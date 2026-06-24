@@ -5,8 +5,14 @@ export const FAIL_RATE = 0.15;
 
 export const STORAGE_KEY = "era2:generation-queue";
 
+// больше строк — включаем виртуализацию (TaskList)
+export const VIRTUALIZE_THRESHOLD = 40;
+
+// размер пачки демо стресс-теста виртуализации
+export const STRESS_BATCH = 1000;
+
 export const INIT_DELAY_MS = 600;
-// > 0 — эмулирует возможный сбой загрузки сида (ErrorState + «Повторить»)
+// > 0 — эмуляция сбоя загрузки (ErrorState)
 export const INIT_FAIL_RATE = 0.1;
 
 export const ERROR_MESSAGES = [

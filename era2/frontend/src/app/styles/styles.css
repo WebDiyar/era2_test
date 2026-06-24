@@ -447,3 +447,16 @@ body:not(.dark) {
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Доступность: уважаем системную настройку «уменьшить движение» —
+   нейтрализуем CSS-анимации и переходы (framer-motion обрабатывается через MotionConfig). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

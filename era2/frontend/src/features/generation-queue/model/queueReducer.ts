@@ -19,7 +19,9 @@ export type QueueAction =
   | { type: "RETRY"; id: string }
   | { type: "DELETE"; id: string }
   | { type: "CLEAR_DONE" }
-  | { type: "RESTORE"; tasks: GenerationTask[] };
+  | { type: "RESTORE"; tasks: GenerationTask[] }
+  | { type: "BULK_ADD"; tasks: GenerationTask[] }
+  | { type: "REORDER_QUEUED"; orderedIds: string[] };
 
 export const initialQueueState: QueueState = { phase: "loading", tasks: [] };
 
@@ -108,6 +110,27 @@ export function queueReducer(state: QueueState, action: QueueAction): QueueState
       const existing = new Set(state.tasks.map((t) => t.id));
       const add = action.tasks.filter((t) => !existing.has(t.id));
       return { ...state, tasks: [...state.tasks, ...add] };
+    }
+
+    case "BULK_ADD": {
+      const existing = new Set(state.tasks.map((t) => t.id));
+      const add = action.tasks.filter((t) => !existing.has(t.id));
+      return { ...state, tasks: [...state.tasks, ...add] };
+    }
+
+    // orderedIds = новый порядок ВИДИМЫХ queued (при активном поиске часть скрыта).
+    // переставляем только их в своих слотах; queued вне списка и остальные задачи — на местах.
+    case "REORDER_QUEUED": {
+      const ordered = action.orderedIds;
+      const inOrder = new Set(ordered);
+      const byId = new Map(state.tasks.map((t) => [t.id, t]));
+      let vi = 0;
+      const queued = state.tasks
+        .filter((t) => t.status === "queued")
+        .map((t) => (inOrder.has(t.id) ? byId.get(ordered[vi++])! : t));
+      let qi = 0;
+      const tasks = state.tasks.map((t) => (t.status === "queued" ? queued[qi++] : t));
+      return { ...state, tasks };
     }
 
     default:

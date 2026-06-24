@@ -14,9 +14,10 @@ export function TaskTypeIcon({ type, className }: { type: GenType; className?: s
   return (
     <div
       className={cn(
-        "flex size-12 shrink-0 items-center justify-center rounded-md border border-white/5 bg-[#241813] text-[#ff8d5e]",
+        "flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-accent text-accent-foreground",
         className,
       )}
+      aria-hidden="true"
     >
       <Icon className="size-5" />
     </div>

@@ -10,7 +10,7 @@ const ITEMS = [
 
 export function QueueStats({ counts }: { counts: QueueCounts }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
       {ITEMS.map((it) => (
         <div key={it.key} className="rounded-[18px] border border-border bg-card p-5">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -1,7 +1,7 @@
 import type { GenerationTask } from "@/entities/generation-task";
 import { STORAGE_KEY } from "./constants";
 
-// рехидрация: running → queued (прогресс сохраняем), движок продолжит с учётом лимита слотов
+// при загрузке running → queued (движок продолжит с учётом лимита)
 export function loadTasks(): GenerationTask[] | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);

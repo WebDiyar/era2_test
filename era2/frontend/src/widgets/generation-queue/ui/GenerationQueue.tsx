@@ -1,30 +1,53 @@
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
+import { useIsMobile } from "@/shared/hooks/use-mobile";
 import {
   EmptyState,
   ErrorState,
   LoadingState,
   QueueStats,
   QueueToolbar,
-  TaskRow,
-  selectQueuePosition,
+  TaskList,
+  selectQueuePositions,
+  selectQueuedOrdered,
   selectVisible,
   useQueue,
 } from "@/features/generation-queue";
-import type { SortOrder, StatusFilter } from "@/features/generation-queue";
+import type { SortOrder, StatusFilter, TypeFilter } from "@/features/generation-queue";
 
 export function GenerationQueue() {
-  const { phase, tasks, counts, cancel, retry, remove, restore, clearDone, reload } = useQueue();
+  const {
+    phase,
+    tasks,
+    counts,
+    cancel,
+    retry,
+    remove,
+    restore,
+    clearDone,
+    reorderQueued,
+    moveQueued,
+    addStress,
+    reload,
+  } = useQueue();
+  const isMobile = useIsMobile();
 
   const [status, setStatus] = useState<StatusFilter>("all");
+  const [type, setType] = useState<TypeFilter>("all");
   const [sort, setSort] = useState<SortOrder>("newest");
   const [query, setQuery] = useState("");
 
-  const visible = useMemo(
-    () => selectVisible(tasks, { status, sort, query }),
-    [tasks, status, sort, query],
-  );
+  // вкладка «В очереди» — порядок очереди (drag), без сортировки
+  const isQueuedTab = status === "queued";
+
+  const visible = useMemo(() => {
+    const base = isQueuedTab
+      ? selectQueuedOrdered(tasks, query)
+      : selectVisible(tasks, { status, sort, query });
+    return type === "all" ? base : base.filter((t) => t.type === type);
+  }, [tasks, status, type, sort, query, isQueuedTab]);
+  const positions = useMemo(() => selectQueuePositions(tasks), [tasks]);
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -39,6 +62,16 @@ export function GenerationQueue() {
     [tasks, remove, restore],
   );
 
+  const handleCancel = useCallback(
+    (id: string) => {
+      cancel(id);
+      toast("Генерация отменена", {
+        action: { label: "Вернуть", onClick: () => retry(id) },
+      });
+    },
+    [cancel, retry],
+  );
+
   const handleClearDone = useCallback(() => {
     const done = tasks.filter((t) => t.status === "done");
     if (!done.length) return;
@@ -51,15 +84,28 @@ export function GenerationQueue() {
   const handleDownload = useCallback(() => toast("Скачивание — заглушка"), []);
 
   return (
-    <div className="mx-auto max-w-280 px-6 py-8">
-      <header className="flex items-start justify-between gap-4">
+    <div className="mx-auto max-w-280 px-4 py-6 md:px-6 md:py-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Очередь генераций</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+            Очередь генераций
+          </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">Все ваши задачи в реальном времени</p>
         </div>
-        <Button variant="ghost" onClick={handleClearDone}>
-          Очистить готовые
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+            onClick={addStress}
+            title="Демо производительности: добавить 1000 задач (виртуализация списка)"
+          >
+            +1000 (демо)
+          </Button>
+          <Button variant="ghost" onClick={handleClearDone}>
+            Очистить готовые
+          </Button>
+        </div>
       </header>
 
       <div className="mt-7">
@@ -70,13 +116,21 @@ export function GenerationQueue() {
         <QueueToolbar
           status={status}
           onStatusChange={setStatus}
+          type={type}
+          onTypeChange={setType}
           sort={sort}
           onSortChange={setSort}
           onSearchChange={setQuery}
         />
       </div>
 
-      <div className="mt-5 space-y-3">
+      {isQueuedTab && visible.length > 1 && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          Перетащите задачи за ручку, чтобы изменить порядок выполнения (или стрелки ↑/↓).
+        </p>
+      )}
+
+      <div className="mt-5">
         {phase === "loading" && <LoadingState />}
         {phase === "error" && <ErrorState onRetry={reload} />}
 
@@ -88,18 +142,20 @@ export function GenerationQueue() {
           />
         )}
 
-        {phase === "ready" &&
-          visible.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              queuePosition={selectQueuePosition(tasks, task.id)}
-              onCancel={() => cancel(task.id)}
-              onRetry={() => retry(task.id)}
-              onDownload={handleDownload}
-              onDelete={() => handleDelete(task.id)}
-            />
-          ))}
+        {phase === "ready" && visible.length > 0 && (
+          <TaskList
+            tasks={visible}
+            positions={positions}
+            variant={isMobile ? "card" : "row"}
+            draggable={isQueuedTab}
+            onReorder={reorderQueued}
+            onMove={moveQueued}
+            onCancel={handleCancel}
+            onRetry={retry}
+            onDownload={handleDownload}
+            onDelete={handleDelete}
+          />
+        )}
       </div>
     </div>
   );

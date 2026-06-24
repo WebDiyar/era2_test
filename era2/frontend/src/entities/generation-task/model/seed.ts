@@ -5,8 +5,9 @@ const secondsAgo = (s: number) => NOW - s * 1_000;
 const minutesAgo = (m: number) => NOW - m * 60_000;
 const hoursAgo = (h: number) => NOW - h * 3_600_000;
 
+// 27 задач: каждый тип (text/image/video/audio) и каждый статус представлены
 export const SEED_TASKS: GenerationTask[] = [
-  // running (2 — оба слота заняты)
+  // running (оба слота заняты)
   {
     id: "task-01",
     type: "video",
@@ -140,7 +141,6 @@ export const SEED_TASKS: GenerationTask[] = [
     progress: 100,
     createdAt: minutesAgo(34),
     credits: 30,
-    durationLabel: "1:1",
   },
   {
     id: "task-13",
@@ -162,7 +162,7 @@ export const SEED_TASKS: GenerationTask[] = [
     progress: 100,
     createdAt: minutesAgo(55),
     credits: 90,
-    durationLabel: "6s",
+    durationLabel: "0:06",
   },
   {
     id: "task-15",
@@ -183,7 +183,6 @@ export const SEED_TASKS: GenerationTask[] = [
     progress: 100,
     createdAt: hoursAgo(2),
     credits: 25,
-    durationLabel: "4:3",
   },
   {
     id: "task-17",

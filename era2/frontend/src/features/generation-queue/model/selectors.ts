@@ -19,13 +19,36 @@ export function selectCounts(tasks: GenerationTask[]): QueueCounts {
   return counts;
 }
 
-// позиция (1-based) среди queued по FIFO; null — если задача не в очереди
+// queued в порядке массива — источник правды для FIFO/позиций/reorder
+export function selectQueuedOrdered(tasks: GenerationTask[], query?: string): GenerationTask[] {
+  let res = tasks.filter((t) => t.status === "queued");
+  const q = query?.trim().toLowerCase();
+  if (q) res = res.filter((t) => t.prompt.toLowerCase().includes(q));
+  return res;
+}
+
 export function selectQueuePosition(tasks: GenerationTask[], id: string): number | null {
-  const queued = tasks
-    .filter((t) => t.status === "queued")
-    .sort((a, b) => a.createdAt - b.createdAt);
-  const idx = queued.findIndex((t) => t.id === id);
+  const idx = tasks.filter((t) => t.status === "queued").findIndex((t) => t.id === id);
   return idx === -1 ? null : idx + 1;
+}
+
+// все позиции разом — O(n) для большого списка
+export function selectQueuePositions(tasks: GenerationTask[]): Map<string, number> {
+  const map = new Map<string, number>();
+  let pos = 0;
+  for (const t of tasks) if (t.status === "queued") map.set(t.id, ++pos);
+  return map;
+}
+
+// какие queued стартовать, чтобы running ≤ max (чистая — под юнит-тест)
+export function selectNextToStart(tasks: GenerationTask[], max: number): string[] {
+  const running = tasks.filter((t) => t.status === "running").length;
+  const free = max - running;
+  if (free <= 0) return [];
+  return tasks
+    .filter((t) => t.status === "queued")
+    .slice(0, free)
+    .map((t) => t.id);
 }
 
 export interface VisibleOptions {
@@ -63,8 +86,9 @@ export function selectActiveTasks(tasks: GenerationTask[]): GenerationTask[] {
   return tasks.filter((t) => t.status === "running" || t.status === "queued");
 }
 
+// средний прогресс по running (как в макете)
 export function selectAvgProgress(tasks: GenerationTask[]): number {
-  const active = selectActiveTasks(tasks);
-  if (!active.length) return 0;
-  return Math.round(active.reduce((sum, t) => sum + t.progress, 0) / active.length);
+  const running = tasks.filter((t) => t.status === "running");
+  if (!running.length) return 0;
+  return Math.round(running.reduce((sum, t) => sum + t.progress, 0) / running.length);
 }

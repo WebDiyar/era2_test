@@ -46,7 +46,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <main
           className={cn(
             "transition-all duration-300",
-            !isFullWidth && (sidebarCollapsed ? "lg:pl-14" : "lg:pl-[200px]"),
+            !isFullWidth && (sidebarCollapsed ? "lg:pl-14" : "lg:pl-50"),
           )}
         >
           {isFullWidth ? (
@@ -62,7 +62,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed inset-0 z-[9999]"
+          className="pointer-events-none fixed inset-0 z-9999"
           style={{
             opacity: theme === "dark" ? 0.035 : 0.12,
             mixBlendMode: theme === "dark" ? "overlay" : "multiply",

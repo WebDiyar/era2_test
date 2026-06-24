@@ -2,11 +2,11 @@ import type { TaskStatus } from "@/entities/generation-task";
 import { cn } from "@/shared/lib/utils";
 
 const CONFIG: Record<TaskStatus, { label: string; className: string }> = {
-  queued: { label: "В очереди", className: "bg-white/[0.04] text-muted-foreground border-white/10" },
+  queued: { label: "В очереди", className: "bg-muted text-muted-foreground border-border" },
   running: { label: "Идёт", className: "bg-primary text-primary-foreground border-transparent" },
-  done: { label: "Готово", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" },
-  failed: { label: "Ошибка", className: "bg-red-500/15 text-red-400 border-red-500/25" },
-  canceled: { label: "Отменено", className: "bg-white/[0.04] text-muted-foreground/70 border-white/10" },
+  done: { label: "Готово", className: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" },
+  failed: { label: "Ошибка", className: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/25" },
+  canceled: { label: "Отменено", className: "bg-muted text-muted-foreground/70 border-border" },
 };
 
 export function StatusBadge({ status, className }: { status: TaskStatus; className?: string }) {

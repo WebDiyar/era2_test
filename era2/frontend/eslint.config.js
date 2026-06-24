@@ -19,7 +19,32 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": [
+        "warn",
+        {
+          allowConstantExport: true,
+          // хуки и cva-варианты намеренно колоцированы с провайдерами/компонентами
+          // (паттерн shadcn/ui и React Context) — они не ломают прод, только подсказка HMR.
+          allowExportNames: [
+            "useAuth",
+            "useCommandPalette",
+            "useCopyToast",
+            "useQueueContext",
+            "useTheme",
+            "useLocation",
+            "useNavigate",
+            "useParams",
+            "useFormField",
+            "useSidebar",
+            "getModelIcon",
+            "toolPageItems",
+            "badgeVariants",
+            "buttonVariants",
+            "toggleVariants",
+            "navigationMenuTriggerStyle",
+          ],
+        },
+      ],
       "@typescript-eslint/no-unused-vars": "off",
     },
   }

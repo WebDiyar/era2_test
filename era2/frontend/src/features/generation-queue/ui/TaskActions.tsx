@@ -1,4 +1,4 @@
-import { Download, MoreHorizontal, RotateCcw, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Download, MoreHorizontal, RotateCcw, Trash2, X } from "lucide-react";
 import type { TaskStatus } from "@/entities/generation-task";
 import {
   DropdownMenu,
@@ -13,6 +13,11 @@ export interface TaskActionHandlers {
   onRetry: () => void;
   onDownload: () => void;
   onDelete: () => void;
+  // перестановка очереди (только queued, опционально)
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }
 
 interface Props extends TaskActionHandlers {
@@ -20,11 +25,22 @@ interface Props extends TaskActionHandlers {
 }
 
 const iconBtn =
-  "flex size-9 items-center justify-center rounded-[10px] border border-white/[0.06] bg-white/[0.02] text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "flex size-9 items-center justify-center rounded-[10px] border border-border bg-secondary text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-export function TaskActions({ status, onCancel, onRetry, onDownload, onDelete }: Props) {
+export function TaskActions({
+  status,
+  onCancel,
+  onRetry,
+  onDownload,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp,
+  canMoveDown,
+}: Props) {
   const canCancel = status === "running" || status === "queued";
   const canRetry = status === "failed" || status === "canceled";
+  const showMove = status === "queued" && (onMoveUp || onMoveDown);
 
   return (
     <div className="flex items-center gap-1.5">
@@ -46,11 +62,11 @@ export function TaskActions({ status, onCancel, onRetry, onDownload, onDelete }:
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className={iconBtn} aria-label="Ещё">
+          <button type="button" className={iconBtn} aria-label="Ещё действия">
             <MoreHorizontal className="size-4" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuContent align="end" className="w-52">
           {status === "done" && (
             <DropdownMenuItem className="gap-2" onClick={onDownload}>
               <Download className="size-4" /> Скачать
@@ -66,9 +82,19 @@ export function TaskActions({ status, onCancel, onRetry, onDownload, onDelete }:
               <X className="size-4" /> Отменить
             </DropdownMenuItem>
           )}
+          {showMove && (
+            <>
+              <DropdownMenuItem className="gap-2" disabled={!canMoveUp} onClick={onMoveUp}>
+                <ArrowUp className="size-4" /> Выше в очереди
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-2" disabled={!canMoveDown} onClick={onMoveDown}>
+                <ArrowDown className="size-4" /> Ниже в очереди
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className="gap-2 text-red-400 focus:text-red-400"
+            className="gap-2 text-destructive focus:text-destructive"
             onClick={onDelete}
           >
             <Trash2 className="size-4" /> Удалить

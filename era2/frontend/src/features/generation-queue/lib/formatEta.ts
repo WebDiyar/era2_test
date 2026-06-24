@@ -1,4 +1,4 @@
-import type { GenerationTask } from "@/entities/generation-task";
+import type { GenerationTask, GenType } from "@/entities/generation-task";
 
 export function formatEta(sec?: number): string {
   if (sec == null || sec <= 0) return "—";
@@ -17,10 +17,29 @@ export function taskMeta(task: GenerationTask, queuePosition?: number | null): s
     case "queued":
       return `${queuePosition ? `позиция ${queuePosition} в очереди` : "в очереди"} · ${task.credits} cr`;
     case "done":
-      return `готово · ${task.credits} cr`;
+      return `${task.durationLabel ? `${task.durationLabel} · ` : ""}готово · ${task.credits} cr`;
     case "failed":
       return task.error ?? "ошибка генерации";
     case "canceled":
       return "отменено пользователем";
   }
+}
+
+const TYPE_GENITIVE: Record<GenType, string> = {
+  text: "текста",
+  image: "изображения",
+  video: "видео",
+  audio: "аудио",
+};
+
+export function generationTitle(type: GenType): string {
+  return `Генерация ${TYPE_GENITIVE[type]}`;
+}
+
+export function pluralGenerations(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "генерация";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return "генерации";
+  return "генераций";
 }
